@@ -35,6 +35,9 @@ THE SOFTWARE.
 #import "OgreLogManager.h"
 #import "OgreString.h"
 
+#include <algorithm>
+#include <vector>
+
 namespace Ogre
 {
     CFBundleRef mac_loadExeBundle( const char *name )
@@ -138,18 +141,72 @@ namespace Ogre
 
     void *mac_loadDylib( const char *name )
     {
-        String fullPath = name;
-        if( name[0] != '/' )
-            fullPath = macPluginPath() + "/" + fullPath;
+        if( !name || !name[0] )
+            return 0;
 
-        void *lib = dlopen( fullPath.c_str(), RTLD_LAZY | RTLD_GLOBAL );
-        if( !lib )
+        const int dlOpenFlags = RTLD_LAZY | RTLD_GLOBAL;
+        const String libName( name );
+
+        std::vector<String> candidates;
+        auto addCandidate = [&]( const String &path ) {
+            if( path.empty() )
+                return;
+
+            if( std::find( candidates.begin(), candidates.end(), path ) == candidates.end() )
+                candidates.push_back( path );
+
+            size_t lastSlash = path.find_last_of( '/' );
+            size_t lastBackslash = path.find_last_of( '\\' );
+            size_t separatorPos;
+            if( lastSlash == String::npos )
+                separatorPos = lastBackslash;
+            else if( lastBackslash == String::npos )
+                separatorPos = lastSlash;
+            else
+                separatorPos = std::max( lastSlash, lastBackslash );
+            const String dir = separatorPos == String::npos ? String() : path.substr( 0u, separatorPos + 1u );
+            const String leaf = separatorPos == String::npos ? path : path.substr( separatorPos + 1u );
+            if( leaf.size() < 3u || leaf.compare( 0u, 3u, "lib" ) != 0 )
+            {
+                String withPrefix = dir + "lib" + leaf;
+                if( std::find( candidates.begin(), candidates.end(), withPrefix ) == candidates.end() )
+                    candidates.push_back( withPrefix );
+            }
+        };
+
+        if( libName[0] == '/' )
         {
-            // Try loading it by using the run-path (@rpath)
-            lib = dlopen( name, RTLD_LAZY | RTLD_GLOBAL );
+            addCandidate( libName );
+        }
+        else
+        {
+            const bool hasDirSeparator =
+                libName.find( '/' ) != String::npos || libName.find( '\\' ) != String::npos;
+
+            if( !hasDirSeparator )
+            {
+                addCandidate( macPluginPath() + libName );
+                addCandidate( macBundlePath() + "/../../lib/macosx/" + libName );
+            }
+            else
+            {
+                addCandidate( macBundlePath() + "/" + libName );
+                addCandidate( macBundlePath() + "/../" + libName );
+            }
+
+            addCandidate( libName );
         }
 
-        return lib;
+        addCandidate( String( name ) );
+
+        for( const String &candidate : candidates )
+        {
+            void *handle = dlopen( candidate.c_str(), dlOpenFlags );
+            if( handle )
+                return handle;
+        }
+
+        return 0;
     }
 
     String macBundlePath()

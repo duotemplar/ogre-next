@@ -124,4 +124,9 @@ unsigned short EmitterDefData::_getEmissionCount( Real )
     return 0u;
 }
 
+void ParticleEmitterDefDataFactory::destroyEmitter( EmitterDefData *emitter )
+{
+    OGRE_DELETE emitter;
+}
+
 #include "OgreEmitter2Clone.autogen.h"

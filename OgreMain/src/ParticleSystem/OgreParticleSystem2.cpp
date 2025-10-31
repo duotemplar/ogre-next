@@ -298,7 +298,10 @@ void ParticleSystemDef::_destroy( VaoManager *vaoManager )
     }
 
     for( EmitterDefData *emitter : mEmitters )
-        delete emitter;
+    {
+        const IdString emitterType( emitter->asParticleEmitter()->getType() );
+        ParticleSystemManager2::getFactory( emitterType )->destroyEmitter( emitter );
+    }
     mEmitters.clear();
     for( ParticleAffector2 *affector : mAffectors )
         delete affector;

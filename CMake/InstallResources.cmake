@@ -225,9 +225,9 @@ if (WIN32)
   set(OGRE_SAMPLES_DIR_REL ".")
   set(OGRE_SAMPLES_DIR_DBG ".")
 elseif (APPLE)
-  # not used on OS X, uses Resources
-  set(OGRE_PLUGIN_DIR_REL "")
-  set(OGRE_PLUGIN_DIR_DBG "")
+  # When running from the build tree, point at the shared libs beside the source root.
+  set(OGRE_PLUGIN_DIR_REL "../lib/macosx/")
+  set(OGRE_PLUGIN_DIR_DBG "../lib/macosx/")
   set(OGRE_SAMPLES_DIR_REL "")
   set(OGRE_SAMPLES_DIR_DBG "")
 elseif (UNIX)

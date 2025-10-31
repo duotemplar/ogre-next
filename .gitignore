@@ -29,3 +29,24 @@ AndroidDependencies/
 Build/
 EmscriptenDependencies
 EmscriptenBuild
+bin/
+lib/
+include/
+inst/
+pkgconfig/
+sdk/
+
+# CMake cache / install manifest
+CMakeCache.txt
+install_manifest.txt
+cmake_install.cmake
+CPackConfig.cmake
+CPackSourceConfig.cmake
+version.txt
+Makefile
+
+# Generated build trees
+**/CMakeFiles/
+**/cmake_install.cmake
+**/Makefile
+!Tools/Wings3DExporter/Makefile

@@ -60,11 +60,18 @@ namespace Ogre
     {
     protected:
         friend struct EmitterInstanceData;
+        friend class ParticleEmitterDefDataFactory;
 
         Vector2 mDimensions;
 
     public:
         EmitterDefData();
+
+        // Re-expose allocation operators so factories can instantiate emitters.
+        using ParticleEmitter::operator new;
+        using ParticleEmitter::operator new[];
+    using ParticleEmitter::operator delete;
+    using ParticleEmitter::operator delete[];
 
         void setInitialDimensions( const Vector2 &dim );
 
@@ -126,6 +133,9 @@ namespace Ogre
 
         /// Creates a new emitter instance.
         virtual EmitterDefData *createEmitter() = 0;
+
+        /// Destroys an emitter instance previously created by this factory.
+        virtual void destroyEmitter( EmitterDefData *emitter );
     };
 
     OGRE_ASSUME_NONNULL_END
